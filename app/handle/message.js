@@ -35,13 +35,11 @@ const music = require("./modules/music");
 const nhentai = require("./modules/nhentai-search");
 const tts = require("./modules/say");
 const weather = require("./modules/weather");
-const randompics = require("./modules/randompics");
 if (h = 0) {
 var sleeptime = [];
 var wakelist = [];
 var checkthreadid = [];
 var fact = [];
-return;
 }
 
 module.exports = function({
