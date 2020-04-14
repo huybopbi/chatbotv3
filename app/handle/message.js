@@ -7,7 +7,6 @@ const request = require("request");
 const http = require("http");
 const randomfacts = require('@dpmcmlxxvi/randomfacts');
 const api = 'https://random-word-api.herokuapp.com/word?number=1';
-const request = require("request");
 const wiki = require("wikijs").default;
 //API GOOGLE//
 var googlecustomsearch =
