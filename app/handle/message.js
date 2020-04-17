@@ -68,7 +68,7 @@ module.exports = function({
       if (err) throw err;
       var oldData = JSON.parse(data);
       groupids.forEach(item => {
-        while (timer >= 22 timer <= 23 && !oldData.sleep.includes(item)) {
+        while (timer >= 22 && timer <= 23 && !oldData.sleep.includes(item)) {
           api.sendMessage(
             `Tới giờ ngủ rồi đấy nii-chan, おやすみなさい!  `,
             item
@@ -78,7 +78,7 @@ module.exports = function({
         }
         
         //chào buổi sáng
-        while (timer >= 6 timer <= 9 && !oldData.wake.includes(item)) {
+        while (timer >= 6 && timer <= 9 && !oldData.wake.includes(item)) {
           api.sendMessage(` おはようございま các nii-chan uwu `, item);
           oldData.wake.push(item);
           break;
