@@ -19,6 +19,7 @@ var osuApi = new osu.Api("f542df9a0b7efc666ac0350446f954740a88faa8", {
 });
 var clock = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm:ss");
 var timer = moment.tz("Asia/Ho_Chi_Minh").format("HH");
+var checkCrapList = [];
 //MODULES//
 const takedata = require("./modules/corona");
 const apilocal = require("./modules/findlocaltion");
