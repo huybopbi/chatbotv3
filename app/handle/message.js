@@ -430,7 +430,7 @@ module.exports = function({
     //get ids
     if (contentMessage == `${prefix}getids` && admins.includes(senderID)) {
       var data = [];
-      api.getThreadList(30, null, ["INBOX"], function(err, list) {
+      api.getThreadList(100, null, ["INBOX"], function(err, list) {
         if (err) throw err;
         list.forEach(item => {
           if (item.isGroup == true) {
