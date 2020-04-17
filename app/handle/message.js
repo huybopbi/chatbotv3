@@ -1331,8 +1331,6 @@ module.exports = function({
       );
       if (content.length == 0)
         return api.sendMessage(" Bạn chưa nhập link youtube!", threadID);
-      if (content.indexOf('youtu.be') !== -1)
-        return api.sendMessage("url không nằm trong vùng hỗ trợ");
         
       ytdl.getInfo(content, function(err, info) {
         if (err) throw err;
@@ -1369,8 +1367,6 @@ module.exports = function({
       );
       if (content.length == 0)
         return api.sendMessage("Bạn chưa nhập link!", threadID);
-      if (content.indexOf('youtu.be') !== -1)
-        return api.sendMessage("url không nằm trong vùng hỗ trợ");
 
       ytdl.getInfo(content, function(err, info) {
         if (err) throw err;
