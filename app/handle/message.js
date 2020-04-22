@@ -858,7 +858,7 @@ module.exports = function({
               body: "",
               attachment: fs.createReadStream(__dirname + `/src/randompic.gif`)
             };
-            api.sendMessage(up, threadID, messageID, () =>
+            api.sendMessage(up, threadID,() =>
               fs.unlinkSync(__dirname + `/src/randompic.gif`)
             );
           };
@@ -1136,9 +1136,7 @@ module.exports = function({
               `% \n - 💨tốc độ gió: ` +
               weatherdata.wind.speed +
               `km/h `,
-            threadID,
-            messageID,
-            () => {
+            threadID,() => {
               fs.unlinkSync(__dirname + "/src/weather.json");
             }
           );
@@ -1219,9 +1217,7 @@ module.exports = function({
             data.data.vietnam.deaths +
             "\n - Phục hồi: " +
             data.data.vietnam.recovered,
-          threadID,
-          messageID,
-          () => {
+          threadID,() => {
             fs.unlinkSync(__dirname + "/src/corona.json");
           }
         );
