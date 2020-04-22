@@ -1170,7 +1170,7 @@ module.exports = function({
           body: "",
           attachment: fs.createReadStream(__dirname + "/src/say.mp3")
         };
-        api.sendMessage(m, threadID, () => {
+        api.sendMessage(m, threadID,() => {
           fs.unlinkSync(__dirname + "/src/say.mp3");
         });
       };
