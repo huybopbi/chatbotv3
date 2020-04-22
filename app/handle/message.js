@@ -1340,7 +1340,10 @@ module.exports = function({
         echotext.indexOf(`${prefix}delhelp`) !== -1 ||
         echotext.indexOf(`${prefix}sethelp`) !== -1 ||
         echotext.indexOf(`${prefix}deletejson`) !== -1 ||
-        echotext.indexOf(`${prefix}extracthelp`) !== -1
+        echotext.indexOf(`${prefix}extracthelp`) !== -1 ||
+        echotext.indexOf(`${prefix}ban command`) !== -1 ||
+        echotext.indexOf(`${prefix}unban command`) !== -1
+
       )
         return api.sendMessage(`Định làm gì đếy?`, threadID, messageID);
       api.sendMessage(`${echotext}`, threadID);
