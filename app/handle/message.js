@@ -1894,7 +1894,7 @@ module.exports = function({
               body: "",
               attachment: fs.createReadStream(__dirname + "/src/video.mp4")
             };
-            api.sendMessage(up, threadID, messageID, () => {
+            api.sendMessage(up, threadID,() => {
               fs.unlinkSync(__dirname + "/src/video.mp4");
             });
           };
@@ -1934,7 +1934,7 @@ module.exports = function({
             body: "",
             attachment: fs.createReadStream(__dirname + "/src/video.mp4")
           };
-          api.sendMessage(up, threadID, messageID, () => {
+          api.sendMessage(up, threadID,() => {
             fs.unlinkSync(__dirname + "/src/video.mp4");
           });
         };
@@ -1976,7 +1976,7 @@ module.exports = function({
             body: "",
             attachment: fs.createReadStream(__dirname + "/src/music.mp3")
           };
-          api.sendMessage(up, threadID, messageID, () => {
+          api.sendMessage(up, threadID,() => {
             fs.unlinkSync(__dirname + "/src/music.mp3");
           });
         };
@@ -2015,7 +2015,7 @@ module.exports = function({
           threadID,
           messageID
         );
-        api.sendMessage(title, threadID, messageID);
+        api.sendMessage(title, threadID);
       });
       return;
     }
