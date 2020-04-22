@@ -780,7 +780,7 @@ module.exports = function({
         contentMessage.length
       );
       var jsonData = fs.readFileSync(__dirname + "/src/endpoints.json");
-      var data = JSON.parse(data);
+      var data = JSON.parse(jsonData);
       var baseURL = "https://nekos.life/api/v2";
       var url = "";
 
@@ -1359,7 +1359,6 @@ module.exports = function({
             api.sendMessage(
               { body: "", attachment: fs.createReadStream(path) },
               threadID,
-              messageID,
               () => {
                 fs.unlinkSync(path);
               }
