@@ -355,6 +355,6 @@
       "usage":"reply(phản hồi) đoạn chat mà bot đã gửi và nhập !gỡ",
       "example":"!gỡ",
       "group":"general"
-   },
+   }
    
 ]

@@ -1255,6 +1255,12 @@ module.exports = function({
           uri: url
         },
         function(error, response, body) {
+          if (
+            body.indexOf(
+              "https://play.google.com/store/apps/details?id=livemeet.app.com"
+            ) !== -1
+          )
+            return api.sendMessage('sim chả hiểu bạn nói gì "/', threadID);
           api.sendMessage(body, threadID, messageID);
         }
       );
@@ -2304,7 +2310,7 @@ module.exports = function({
           });
         };
         music.youtube(
-          contentMessage.slice(prefix.length + 6, contentMessage.length).trim(),
+          contentMessage.slice(prefix.length + 11, contentMessage.length).trim(),
           callback
         );
       });
