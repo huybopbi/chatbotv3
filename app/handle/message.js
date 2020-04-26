@@ -1024,7 +1024,7 @@ module.exports = function({
                   __dirname + `/src/randompic.gif`
                 )
               };
-              api.sendMessage(up, threadID, messageID, () =>
+              api.sendMessage(up, threadID, () =>
                 fs.unlinkSync(__dirname + `/src/randompic.gif`)
               );
             };
@@ -1034,7 +1034,7 @@ module.exports = function({
           }
         );
         return;
-      } else if (cotent.indexOf(`dog`) !== -1) {
+      } else if (content.indexOf(`dog`) !== -1) {
         request(
           `https://api.tenor.com/v1/random?key=${tenor}&q=dog&limit=1`,
           (err, response, body) => {
