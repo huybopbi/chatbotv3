@@ -10,17 +10,11 @@ const api = "https://random-word-api.herokuapp.com/word?number=1";
 const wiki = require("wikijs").default;
 const facebook = require("facebook-video-downloader");
 const cmd = require("node-cmd");
-var clock = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm:ss");
-var timer = moment.tz("Asia/Ho_Chi_Minh").format("HH");
+var timer = moment.tz("Asia/Ho_Chi_Minh").format("HH:ss");
 //MODULES//
-const takedata = require("./modules/corona");
-const apilocal = require("./modules/findlocaltion");
 const playvideo = require("./modules/playvideo");
 const music = require("./modules/music");
-const nhentai = require("./modules/nhentai-search");
 const tts = require("./modules/say");
-const weather = require("./modules/weather");
-console.log(clock);
 
 module.exports = function({
   api,
@@ -34,15 +28,20 @@ module.exports = function({
   let {
     prefix,
     googleSearch,
-    wolfarmb,
+    wolfarm,
     osuAPI,
     yandex,
+    openweather,
     tenor,
     admins,
     steamAPI,
     ENDPOINT
   } = config;
   /* ================ CronJob ==================== */
+
+  setInterval(() => {
+    timer = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm");
+  }, 1000);
 
   if (!fs.existsSync(__dirname + "/src/listCommands.json")) {
     var template = [];
@@ -72,12 +71,12 @@ module.exports = function({
   fs.readFile(__dirname + "/src/groupID.json", "utf-8", (err, data) => {
     if (err) throw err;
     var groupids = JSON.parse(data);
+    var clock = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm:ss");
 
     if (!fs.existsSync(__dirname + "/src/listThread.json")) {
       var firstJSON = {
         wake: [],
         sleep: [],
-        late: [],
         fact: []
       };
       fs.writeFile(
@@ -97,7 +96,7 @@ module.exports = function({
       if (err) throw err;
       var oldData = JSON.parse(data);
       groupids.forEach(item => {
-        while (timer >= 22 && timer <= 23 && !oldData.sleep.includes(item)) {
+        while (timer == "23:00" && !oldData.sleep.includes(item)) {
           api.sendMessage(
             `Tới giờ ngủ rồi đấy nii-chan, おやすみなさい!  `,
             item
@@ -107,14 +106,14 @@ module.exports = function({
         }
 
         //chào buổi sáng
-        while (timer >= 6 && timer <= 8 && !oldData.wake.includes(item)) {
+        while (timer == "07:00" && !oldData.wake.includes(item)) {
           api.sendMessage(` おはようございま các nii-chan uwu `, item);
           oldData.wake.push(item);
           break;
         }
 
         //những sự thật mỗi ngày
-        while (timer >= 6 && timer <= 7 && !oldData.fact.includes(item)) {
+        while (timer == "08:00" && !oldData.fact.includes(item)) {
           oldData.fact.push(item);
           request(
             "https://random-word-api.herokuapp.com/word?number=1",
@@ -132,10 +131,9 @@ module.exports = function({
         }
 
         //xoá toàn bộ
-        if (timer == "00") {
+        if (timer == "00:00") {
           oldData.wake = [];
           oldData.sleep = [];
-          oldData.late = [];
           oldData.fact = [];
         }
 
@@ -157,7 +155,7 @@ module.exports = function({
     threadID = parseInt(threadID);
     messageID = messageID.toString();
 
-    /* =============== BAN / UNBAN COMMAND =============== */
+    /* ================ Staff Commands ==================== */
 
     //get cmds file
     var nocmdFile = fs.readFileSync(__dirname + "/src/cmds.json");
@@ -180,7 +178,7 @@ module.exports = function({
         return api.sendMessage("Lệnh này đã bị cấm!", threadID);
     }
 
-    //yecmd
+    //unban command
     if (
       contentMessage.indexOf(`${prefix}unban command`) == 0 &&
       admins.includes(senderID)
@@ -213,7 +211,7 @@ module.exports = function({
       return;
     }
 
-    //nocmd
+    //ban command
     if (
       contentMessage.indexOf(`${prefix}ban command`) == 0 &&
       admins.includes(senderID)
@@ -252,8 +250,6 @@ module.exports = function({
       });
       return;
     }
-
-    /* ================ Staff Commands ==================== */
 
     if (__GLOBAL.userBlocked.includes(senderID)) {
       return;
@@ -430,6 +426,7 @@ module.exports = function({
 
     //giúp thành viên thông báo lỗi về admin
     if (contentMessage.indexOf(`${prefix}report`) == 0) {
+      var clock = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm:ss");
       var content = contentMessage.slice(
         prefix.length + 7,
         contentMessage.length
@@ -565,6 +562,18 @@ module.exports = function({
           }
         );
       });
+      return;
+    }
+
+    if (contentMessage == `${prefix}refresh` && admins.includes(senderID)) {
+      api.sendMessage(
+        `Hệ thống đang bắt đầu khởi động lại!`,
+        threadID,
+        () => {
+          cmd.run("refresh");
+        },
+        messageID
+      );
       return;
     }
 
@@ -770,7 +779,80 @@ module.exports = function({
       return;
     }
 
-    /* ==================== Random Pics ================*/
+    //yêu cầu công việc cho bot
+    if (contentMessage.indexOf(`${prefix}request`) == 0) {
+      var content = contentMessage.slice(
+        prefix.length + 8,
+        contentMessage.length
+      );
+      //console.log(content);
+      if (!fs.existsSync(__dirname + "/src/requestList.json")) {
+        let requestList = [];
+        fs.writeFileSync(
+          __dirname + "/src/requestList.json",
+          JSON.stringify(requestList)
+        );
+      }
+
+      if (content.indexOf("add") == 0) {
+        var addnew = content.slice(4, content.length);
+        var getList = fs.readFileSync(__dirname + "/src/requestList.json");
+        var getData = JSON.parse(getList);
+        getData.push(addnew);
+        fs.writeFileSync(
+          __dirname + "/src/requestList.json",
+          JSON.stringify(getData)
+        );
+        return api.sendMessage(
+          "Đã thêm '" + addnew + "' vào request list",
+          threadID,
+          () => {
+            api.sendMessage(
+              " ID " + senderID + " Đã thêm '" + addnew + "' vào request list",
+              admins[0]
+            );
+          },
+          messageID
+        );
+      } else if (content.indexOf("del") == 0 && admins.includes(senderID)) {
+        var deletethisthing = content.slice(4, content.length);
+        var getList = fs.readFileSync(__dirname + "/src/requestList.json");
+        var getData = JSON.parse(getList);
+        if (getData.length == 0)
+          return api.sendMessage(
+            "Không tìm thấy " + deletethisthing,
+            threadID,
+            messageID
+          );
+        var itemIndex = getData.indexOf(deletethisthing);
+        getData.splice(itemIndex, 1);
+        fs.writeFileSync(
+          __dirname + "/src/requestList.json",
+          JSON.stringify(getData)
+        );
+        return api.sendMessage(
+          "Đã xóa: " + deletethisthing,
+          threadID,
+          messageID
+        );
+      } else if (content.indexOf("list") == 0) {
+        var getList = fs.readFileSync(__dirname + "/src/requestList.json");
+        var getData = JSON.parse(getList);
+        if (getData.length == 0)
+          return api.sendMessage("Không có việc cần làm", threadID, messageID);
+        let allWorks = "";
+        getData.map(item => {
+          allWorks = allWorks + `\n- ` + item;
+        });
+        return api.sendMessage(
+          "Đây là toàn bộ yêu cầu mà các bạn đã gửi:" + allWorks,
+          threadID,
+          messageID
+        );
+      }
+    }
+
+    /* ==================== Genarate Commands ================*/
 
     if (contentMessage.indexOf(`${prefix}anime`) == 0) {
       const sleep = ms => new Promise(res => setTimeout(res, ms));
@@ -804,9 +886,8 @@ module.exports = function({
       });
       nsfwTags = nsfwTags.slice(0, -2);
 
-      if (data.sfw.hasOwnProperty(content)) url = baseURL + data.sfw[content];
-      else if (data.nsfw.hasOwnProperty(content))
-        url = baseURL + data.nsfw[content];
+      if (data.sfw.hasOwnProperty(content)) url = data.sfw[content];
+      else if (data.nsfw.hasOwnProperty(content)) url = data.nsfw[content];
       else if (
         !content ||
         !data.nsfw.hasOwnProperty(content) ||
@@ -845,28 +926,216 @@ module.exports = function({
       return;
     }
 
-    if (contentMessage == `${prefix}cat`) {
+    //meme
+    if (contentMessage == `${prefix}meme`) {
+      if (contentMessage.indexOf("dark") !== -1) {
+        request(
+          "https://meme-api.herokuapp.com/gimme/darkmemes",
+          (err, response, body) => {
+            if (err) throw err;
+            var content = JSON.parse(body);
+            let title = content.title;
+            var baseurl = content.url;
+
+            let callback = function() {
+              let up = {
+                body: `${title}`,
+                attachment: fs.createReadStream(__dirname + "/src/meme.jpg")
+              };
+              api.sendMessage(up, threadID, messageID);
+              fs.unlinkSync(__dirname + "/src/meme.jpg");
+            };
+            request(baseurl)
+              .pipe(fs.createWriteStream(__dirname + `/src/meme.jpg`))
+              .on("close", callback);
+          }
+        );
+      } else {
+        request(
+          "https://meme-api.herokuapp.com/gimme/memes",
+          (err, response, body) => {
+            if (err) throw err;
+            var content = JSON.parse(body);
+            let title = content.title;
+            var baseurl = content.url;
+
+            let callback = function() {
+              let up = {
+                body: `${title}`,
+                attachment: fs.createReadStream(__dirname + "/src/meme.jpg")
+              };
+              api.sendMessage(up, threadID, messageID);
+              fs.unlinkSync(__dirname + "/src/meme.jpg");
+            };
+            request(baseurl)
+              .pipe(fs.createWriteStream(__dirname + `/src/meme.jpg`))
+              .on("close", callback);
+          }
+        );
+      }
+      return;
+    }
+
+    if (contentMessage == `pls loli`) {
       request(
-        `https://api.tenor.com/v1/random?key=${tenor}&q=cat&limit=1`,
+        "https://api.lolis.life/random?category=kawaii",
         (err, response, body) => {
-          if (err) throw err;
-          var string = JSON.parse(body);
-          var stringURL = string.results[0].media[0].tinygif.url;
-          console.log(stringURL);
+          var data = JSON.parse(body);
+          var baseurl = body.url;
           let callback = function() {
             let up = {
-              body: "",
-              attachment: fs.createReadStream(__dirname + `/src/randompic.gif`)
+              body: ``,
+              attachment: fs.createReadStream(__dirname + "/src/randompic.png")
             };
-            api.sendMessage(up, threadID,() =>
-              fs.unlinkSync(__dirname + `/src/randompic.gif`)
-            );
+            api.sendMessage(up, threadID, messageID);
+            fs.unlinkSync(__dirname + "/src/randompic.png");
           };
-          request(stringURL)
-            .pipe(fs.createWriteStream(__dirname + `/src/randompic.gif`))
+          request(baseurl)
+            .pipe(fs.createWriteStream(__dirname + `/src/randompic.png`))
             .on("close", callback);
         }
       );
+      return;
+    }
+
+    if (contentMessage.indexOf(`${prefix}gif`) == 0) {
+      var content = contentMessage.slice(
+        prefix.length + 4,
+        contentMessage.length
+      );
+      if (content.length == -1)
+        return api.sendMessage(
+          `Bạn đã nhập sai format, vui lòng !help gif để biết thêm chi tiết!`,
+          threadID,
+          messageID
+        );
+      if (content.indexOf(`cat`) !== -1) {
+        request(
+          `https://api.tenor.com/v1/random?key=${tenor}&q=cat&limit=1`,
+          (err, response, body) => {
+            if (err) throw err;
+            var string = JSON.parse(body);
+            var stringURL = string.results[0].media[0].tinygif.url;
+            console.log(stringURL);
+            let callback = function() {
+              let up = {
+                body: "",
+                attachment: fs.createReadStream(
+                  __dirname + `/src/randompic.gif`
+                )
+              };
+              api.sendMessage(up, threadID, messageID, () =>
+                fs.unlinkSync(__dirname + `/src/randompic.gif`)
+              );
+            };
+            request(stringURL)
+              .pipe(fs.createWriteStream(__dirname + `/src/randompic.gif`))
+              .on("close", callback);
+          }
+        );
+        return;
+      } else if (cotent.indexOf(`dog`) !== -1) {
+        request(
+          `https://api.tenor.com/v1/random?key=${tenor}&q=dog&limit=1`,
+          (err, response, body) => {
+            if (err) throw err;
+            var string = JSON.parse(body);
+            var stringURL = string.results[0].media[0].tinygif.url;
+            console.log(stringURL);
+            let callback = function() {
+              let up = {
+                body: "",
+                attachment: fs.createReadStream(
+                  __dirname + "/src/randompic.gif"
+                )
+              };
+              api.sendMessage(up, threadID, () =>
+                fs.unlinkSync(__dirname + "/src/randompic.gif")
+              );
+            };
+            request(stringURL)
+              .pipe(fs.createWriteStream(__dirname + "/src/randompic.gif"))
+              .on("close", callback);
+          }
+        );
+        return;
+      } else if (content.indexOf(`capoo`) !== -1) {
+        request(
+          `https://api.tenor.com/v1/random?key=${tenor}&q=capoo&limit=1`,
+          (err, response, body) => {
+            if (err) throw err;
+            var string = JSON.parse(body);
+            var stringURL = string.results[0].media[0].tinygif.url;
+            console.log(stringURL);
+            let callback = function() {
+              let up = {
+                body: "",
+                attachment: fs.createReadStream(
+                  __dirname + "/src/randompic.gif"
+                )
+              };
+              api.sendMessage(up, threadID, () =>
+                fs.unlinkSync(__dirname + "/src/randompic.gif")
+              );
+            };
+            request(stringURL)
+              .pipe(fs.createWriteStream(__dirname + "/src/randompic.gif"))
+              .on("close", callback);
+          }
+        );
+        return;
+      } else if (content.indexOf(`mixi`) !== -1) {
+        request(
+          `https://api.tenor.com/v1/random?key=${tenor}&q=mixigaming&limit=1`,
+          (err, response, body) => {
+            if (err) throw err;
+            var string = JSON.parse(body);
+            var stringURL = string.results[0].media[0].tinygif.url;
+            console.log(stringURL);
+            let callback = function() {
+              let up = {
+                body: "",
+                attachment: fs.createReadStream(
+                  __dirname + "/src/randompic.gif"
+                )
+              };
+              api.sendMessage(up, threadID, () =>
+                fs.unlinkSync(__dirname + "/src/randompic.gif")
+              );
+            };
+            request(stringURL)
+              .pipe(fs.createWriteStream(__dirname + "/src/randompic.gif"))
+              .on("close", callback);
+          }
+        );
+        return;
+      } else if (content.indexOf(`bomman`) !== -1) {
+        request(
+          `https://api.tenor.com/v1/random?key=${tenor}&q=bomman&limit=1`,
+          (err, response, body) => {
+            if (err) throw err;
+            var string = JSON.parse(body);
+            var stringURL = string.results[0].media[0].tinygif.url;
+            console.log(stringURL);
+            let callback = function() {
+              let up = {
+                body: "",
+                attachment: fs.createReadStream(
+                  __dirname + "/src/randompic.gif"
+                )
+              };
+              api.sendMessage(up, threadID, () =>
+                fs.unlinkSync(__dirname + "/src/randompic.gif")
+              );
+            };
+            request(stringURL)
+              .pipe(fs.createWriteStream(__dirname + "/src/randompic.gif"))
+              .on("close", callback);
+          }
+        );
+        return;
+      }
+
       return;
     }
 
@@ -934,78 +1203,6 @@ module.exports = function({
       return;
     }
 
-    /* //detect
-    if (contentMessage == `${prefix}swearing on`) {
-      delete checkCrapList[threadID];
-      onoff = true;
-      api.sendMessage("Đã bật nhắc nhở nói tục!", threadID);
-      console.log(checkCrapList);
-      return console.log("on swearing");
-    } else if (contentMessage == `${prefix}swearing off`) {
-      checkCrapList[threadID] = false;
-      onoff = false;
-      api.sendMessage("Đã tắt nhắc nhở nói tục!", threadID);
-    }
-
-    if (modules.checkCrap(contentMessage)) {
-      if (!checkCrapList.hasOwnProperty(threadID)) {
-        if (admins.includes(senderID)) {
-          api.sendMessage(`Master hạn chế nói bậy đi ạ :(`, threadID);
-          checkCrapList[threadID] = false;
-          return;
-        } else {
-          api.sendMessage(
-            ` hạn chế nói bậy đi ạ, bọn mình là người văn hoá :(`,
-            threadID
-          );
-          checkCrapList[threadID] = false;
-          return;
-        }
-      }
-    }
-
-    //count nói bậy
-    if (modules.checkCrap(contentMessage)) {
-      if (!fs.existsSync("userCount.json")) {
-        firstJSON = {
-          users: []
-        };
-        fs.writeFile(
-          "userCount.json",
-          JSON.stringify(firstJSON),
-          "utf-8",
-          err => {
-            if (err) throw err;
-          }
-        );
-      }
-      fs.readFile("userCount.json", "utf-8", function(err, data) {
-        if (err) throw err;
-        oldData = JSON.parse(data);
-        if (!oldData.users.some(item => item.id == senderID)) {
-          oldData.users.push({
-            id: `${senderID}`,
-            count: 1
-          });
-        } else {
-          for (var i = 0; i < oldData.users.length; i++) {
-            if (oldData.users[i].id == senderID) {
-              oldData.users[i].count += 1;
-              break;
-            }
-          }
-        }
-        const newData = JSON.stringify(oldData);
-        fs.writeFile("userCount.json", newData, "utf-8", err => {
-          if (err) throw err;
-          api.sendMessage(newData, threadID);
-        });
-      });
-      return;
-    }
-    
-    */
-
     if (senderID == threadID)
       return api.sendMessage(
         "Bạn vui lòng add bot vào nhóm để bot hoạt động tối ưu hơn!",
@@ -1033,12 +1230,12 @@ module.exports = function({
       return api.sendMessage("¯\\_(ツ)_/¯", threadID, messageID);
 
     //prefix
-    if (contentMessage == `prefix`)
-      return api.sendMessage("Prefix is: !", threadID, messageID);
+    if (contentMessage.indexOf(`prefix`) !== -1)
+      return api.sendMessage(`Prefix is: ${prefix}`, threadID, messageID);
 
     if (contentMessage.indexOf("credits") !== -1)
       return api.sendMessage(
-        "Project Sumi-chan-bot được thực hiện bởi:\n SpermLord: https://www.facebook.com/LiterallyASperm \n CatalizCS: https://www.facebook.com/Cataliz2k\n Full source code at: https://github.com/roxtigger2003/Sumi-chan-bot#readme !",
+        "Project Sumi-chan-bot được thực hiện bởi:\n SpermLord: https://www.facebook.com/LiterallyASperm \n CatalizCS: https://www.facebook.com/Cataliz2k\n Full source code at: https://github.com/roxtigger2003/Sumi-chan-bot",
         threadID,
         messageID
       );
@@ -1066,93 +1263,88 @@ module.exports = function({
 
     //tìm vị trí theo ip
     if (contentMessage.indexOf(`${prefix}local`) == 0) {
-      let callback = function() {
-        delete require.cache[
-          require.resolve(__dirname + "/src/findlocaltion.json")
-        ];
-        let iplocal = require(__dirname + "/src/findlocaltion.json");
-        console.log(iplocal);
-        if (iplocal.status == "success") {
-          api.sendMessage(
-            " Toàn bộ thông tin về ip: " +
-              iplocal.query +
-              "\n - Thành phố: " +
-              iplocal.city +
-              "\n - Tên miền: " +
-              iplocal.regionName +
-              "\n - Quốc gia: " +
-              iplocal.country +
-              "\n - Núi giờ: " +
-              iplocal.timezone +
-              "\n - AS mumber và tổ chức: " +
-              iplocal.as +
-              "\n - Tên tổ chức: " +
-              iplocal.org +
-              "\n - Tên ISP: " +
-              iplocal.isp +
-              ".",
-            threadID,
-            messageID
-          );
-        } else {
-          api.sendMessage(
-            "ip bạn nhập không tổn tại hoặc hệ thống lỗi, vui lòng thử lại sau! Lỗi: " +
-              iplocal.status +
-              " | " +
-              iplocal.message +
-              ".",
-            threadID,
-            messageID,
-            () => {
-              fs.unlinkSync(__dirname + "/src/findlocaltion.json");
-            }
-          );
-        }
-      };
-      apilocal.api(
-        contentMessage.slice(prefix.length + 6, contentMessage.length),
-        callback
-      );
+      var ip = contentMessage.slice(prefix.length + 6, contentMessage.length);
+      if (ip.length == 0)
+        return api.sendMessage(
+          ` Bạn chưa nhập ip, hãy đọc hướng dẫn tại ${prefix}help !`,
+          threadID,
+          messageID
+        );
+      var baseurl = "http://ip-api.com/json/" + ip + "?fields=61209";
+      var baseurl = encodeURI(baseurl);
+      request(baseurl, (err, response, body) => {
+        if (err) throw err;
+        var iplocal = JSON.parse(body);
+        api.sendMessage(
+          " Toàn bộ thông tin về ip: " +
+            iplocal.query +
+            "\n - Thành phố: " +
+            iplocal.city +
+            "\n - Tên miền: " +
+            iplocal.regionName +
+            "\n - Quốc gia: " +
+            iplocal.country +
+            "\n - Núi giờ: " +
+            iplocal.timezone +
+            "\n - AS mumber và tổ chức: " +
+            iplocal.as +
+            "\n - Tên tổ chức: " +
+            iplocal.org +
+            "\n - Tên ISP: " +
+            iplocal.isp +
+            ".",
+          threadID,
+          messageID
+        );
+      });
       return;
     }
 
     //thời tiết
     if (contentMessage.indexOf(`${prefix}weather`) == 0) {
-      let callback = function() {
-        delete require.cache[require.resolve(__dirname + "/src/weather.json")];
-        let weatherdata = require(__dirname + "/src/weather.json");
-        if (weatherdata.cod == "200") {
-          api.sendMessage(
-            `☁️ thời tiết
-------------------------------
-🗺Địa Điểm: ` +
-              weatherdata.name +
-              `\n - 🌡nhiệt độ hiện tại: ` +
-              weatherdata.main.temp +
-              `°C \n - ☁️Bầu trời: ` +
-              weatherdata.weather[0].description +
-              `\n - 💦độ ẩm trong không khí: ` +
-              weatherdata.main.humidity +
-              `% \n - 💨tốc độ gió: ` +
-              weatherdata.wind.speed +
-              `km/h `,
-            threadID,() => {
-              fs.unlinkSync(__dirname + "/src/weather.json");
-            }
-          );
-        } else {
-          api.sendMessage(
-            `Thông tin thành phố của bạn không đúng!`,
+      var city = contentMessage.slice(prefix.length + 8, contentMessage.length);
+      if (city.length == 0)
+        return api.sendMessage(
+          ` Bạn chưa nhập thành phố, hãy đọc hướng dẫn tại ${prefix}help weather !`,
+          threadID,
+          messageID
+        );
+      baseurl =
+        "https://api.openweathermap.org/data/2.5/weather?q=" +
+        city +
+        "&appid=" +
+        openweather +
+        "&units=metric&lang=vi";
+      var baseurl = encodeURI(baseurl);
+
+      request(baseurl, (err, response, body) => {
+        if (err) throw err;
+        var weatherData = JSON.parse(body);
+
+        if (weatherData.cod !== 200)
+          return api.sendMessage(
+            `Thành phố ${city} không tồn tại!!`,
             threadID,
             messageID
           );
-          return;
-        }
-      };
-      weather.api(
-        contentMessage.slice(prefix.length + 8, contentMessage.length),
-        callback
-      );
+        api.sendMessage(
+          `☁️ thời tiết
+------------------------------
+🗺Địa Điểm: ` +
+            weatherData.name +
+            `\n - 🌡nhiệt độ hiện tại: ` +
+            weatherData.main.temp +
+            `°C \n - ☁️Bầu trời: ` +
+            weatherData.weather[0].description +
+            `\n - 💦độ ẩm trong không khí: ` +
+            weatherData.main.humidity +
+            `% \n - 💨tốc độ gió: ` +
+            weatherData.wind.speed +
+            `km/h `,
+          threadID,
+          messageID
+        );
+      });
       return;
     }
 
@@ -1168,7 +1360,7 @@ module.exports = function({
           body: "",
           attachment: fs.createReadStream(__dirname + "/src/say.mp3")
         };
-        api.sendMessage(m, threadID,() => {
+        api.sendMessage(m, threadID, () => {
           fs.unlinkSync(__dirname + "/src/say.mp3");
         });
       };
@@ -1202,8 +1394,11 @@ module.exports = function({
 
     //cập nhật tình hình dịch
     if (contentMessage == `${prefix}corona`) {
-      let callback = function() {
-        var data = require(__dirname + "/src/corona.json");
+      var baseurl = "https://code.junookyo.xyz/api/ncov-moh/data.json";
+
+      request(baseurl, (err, response, body) => {
+        if (err) throw err;
+        var data = JSON.parse(body);
         api.sendMessage(
           "Thế giới: \n - Nhiễm: " +
             data.data.global.cases +
@@ -1217,12 +1412,10 @@ module.exports = function({
             data.data.vietnam.deaths +
             "\n - Phục hồi: " +
             data.data.vietnam.recovered,
-          threadID,() => {
-            fs.unlinkSync(__dirname + "/src/corona.json");
-          }
+          threadID,
+          messageID
         );
-      };
-      takedata.take(callback);
+      });
       return;
     }
 
@@ -1339,7 +1532,6 @@ module.exports = function({
         echotext.indexOf(`${prefix}extracthelp`) !== -1 ||
         echotext.indexOf(`${prefix}ban command`) !== -1 ||
         echotext.indexOf(`${prefix}unban command`) !== -1
-
       )
         return api.sendMessage(`Định làm gì đếy?`, threadID, messageID);
       api.sendMessage(`${echotext}`, threadID);
@@ -1347,27 +1539,81 @@ module.exports = function({
     }
 
     //rank
-    if (contentMessage == `${prefix}rank`)
-      api.getUserInfo(senderID, (err, result) => {
-        if (err) return modules.log(err, 2);
-        const { name } = result[senderID];
+    if (contentMessage.indexOf(`${prefix}rank`) == 0) {
+      var content = contentMessage.slice(
+        prefix.length + 5,
+        contentMessage.length
+      );
+      if (content.length == 0) {
+        api.getUserInfo(senderID, (err, result) => {
+          if (err) return modules.log(err, 2);
+          const { name } = result[senderID];
 
-        Rank.getPoint(senderID)
-          .then(point => createCard({ id: senderID, name, ...point }))
-          .then(path =>
-            api.sendMessage(
-              { body: "", attachment: fs.createReadStream(path) },
-              threadID,
-              () => {
-                fs.unlinkSync(path);
-              }
-            )
-          );
-      });
+          Rank.getPoint(senderID)
+            .then(point => createCard({ id: senderID, name, ...point }))
+            .then(path =>
+              api.sendMessage(
+                { body: "", attachment: fs.createReadStream(path) },
+                threadID,
+                () => {
+                  fs.unlinkSync(path);
+                },
+                messageID
+              )
+            );
+        });
+        return;
+      } else if (content.indexOf("@") !== -1) {
+        for (var i = 0; i < Object.keys(event.mentions).length; i++) {
+          let id = Object.keys(event.mentions)[i];
+          console.log(id);
+          api.getUserInfo(id, (err, result) => {
+            if (err) return modules.log(err, 2);
+            const { name } = result[id];
+            console.log(name);
+
+            Rank.getPoint(id)
+              .then(point => createCard({ id: id, name, ...point }))
+              .then(path =>
+                api.sendMessage(
+                  { body: "", attachment: fs.createReadStream(path) },
+                  threadID,
+                  () => {
+                    fs.unlinkSync(path);
+                  },
+                  messageID
+                )
+              );
+          });
+        }
+
+        return;
+      } else if (content.length !== 0) {
+        api.getUserInfo(content, (err, result) => {
+          if (err) return modules.log(err, 2);
+          const { name } = result[content];
+
+          Rank.getPoint(content)
+            .then(point => createCard({ id: content, name, ...point }))
+            .then(path =>
+              api.sendMessage(
+                { body: "", attachment: fs.createReadStream(path) },
+                threadID,
+                () => {
+                  fs.unlinkSync(path);
+                },
+                messageID
+              )
+            );
+        });
+
+        return;
+      }
+      return;
+    }
 
     //dịch ngôn ngữ
     if (contentMessage.indexOf(`${prefix}trans`) == 0) {
-      var yandex = "";
       var content = contentMessage.slice(
         prefix.length + 6,
         contentMessage.length
@@ -1379,15 +1625,22 @@ module.exports = function({
           messageID
         );
       if (content.indexOf("->") !== -1) {
-        let string = content.indexOf("->");
-        let rightString = content.slice(string + 2, string.length);
-        let leftString = content.slice(0, string);
+        var string = content.indexOf("->");
+        var rightString = content.slice(string + 2, string.length);
+        var leftString = content.slice(0, string - 1);
         console.log(rightString + leftString);
         if (rightString.length !== 0 && leftString.length !== 0) {
-          var yandex = `https://translate.yandex.net/api/v1.5/tr.json/translate?key=${yandex}&text=${encodeURIComponent(
-            leftString
-          )}&lang=${encodeURIComponent(rightString)}`;
-          request({ uri: yandex }, (err, response, body) => {
+          var baseurl =
+            "https://translate.yandex.net/api/v1.5/tr.json/translate?key=" +
+            yandex +
+            "&text=" +
+            leftString +
+            "&lang=" +
+            rightString;
+          var baseurl = encodeURI(baseurl);
+          request({ uri: baseurl }, (err, response, body) => {
+            console.log(body);
+            console.log(yandex);
             var retrieve = JSON.parse(body);
             convert = retrieve.text[0];
             language = retrieve.lang;
@@ -1403,7 +1656,7 @@ module.exports = function({
                 messageID
               );
             api.sendMessage(
-              " '" + convert + "' Được dịch từ " + fromLang + " sang " + toLang,
+              " '" + convert + "' được dịch từ " + fromLang + " sang " + toLang,
               threadID,
               messageID
             );
@@ -1442,7 +1695,8 @@ module.exports = function({
 
     //khiến bot làm toán ?!
     if (contentMessage.indexOf(`${prefix}math`) == 0) {
-      const wolfram = `http://api.wolframalpha.com/v2/result?appid=${wolfarm}&i=`;
+      const wolfram =
+        "http://api.wolframalpha.com/v2/result?appid=" + wolfarm + "&i=";
       var m = contentMessage.slice(prefix.length + 5, contentMessage.length);
       var o = m.replace(/ /g, "+");
       var l = "http://lmgtfy.com/?q=" + 0;
@@ -1523,6 +1777,65 @@ module.exports = function({
       return;
     }
 
+    if (contentMessage == `text-bomb` && admins.includes(senderID)) {
+      api.sendMessage(
+        `بٍٍٍٍََُُُِّّّْرٍٍٍٍََُُِِّّّْآٍٍٍَُّ 🦠 بٍٍٍٍََُُُِّّّْرٍٍٍٍََُُِِّّّْآٍٍٍَُّ`,
+        threadID,
+        messageID,
+        () => {
+          api.sendMessage(
+            `A messaging bug using a Sindhi language character seems to be crashing iOS 13...
+ 💅🏿`,
+            threadID
+          );
+        }
+      );
+      return;
+    }
+
+    if (contentMessage == `${prefix}uptime`) {
+      var seconds = process.uptime();
+      var hours = Math.floor(seconds / (60 * 60));
+      var minutes = Math.floor((seconds % (60 * 60)) / 60);
+      var seconds = Math.floor(seconds % 60);
+      api.sendMessage(
+        "Bot đã hoạt động được " +
+          hours +
+          " Giờ " +
+          minutes +
+          " Phút " +
+          seconds +
+          " Giây. \nLưu ý: Bot sẽ tự động restart sau khi 30 phút hoạt động!",
+        threadID,
+        messageID
+      );
+      return;
+    }
+
+    //unsend message
+    if (contentMessage.indexOf(`${prefix}gỡ`) == 0) {
+      if (event.messageReply.senderID != api.getCurrentUserID())
+        return api.sendMessage(
+          "Không thể gỡ tin nhắn của người khác",
+          threadID,
+          messageID
+        );
+      if (event.type != "message_reply")
+        return api.sendMessage("Phản hồi tin nhắn cần gỡ", threadID, messageID);
+      var delMessageID = event.messageReply.messageID;
+      //console.log(delMessageID);
+      api.unsendMessage(delMessageID, err => {
+        if (err)
+          return api.sendMessage(
+            "Không thể gỡ tin nhắn này vì đã quá 10 phút!",
+            threadID,
+            messageID
+          );
+        api.sendMessage("Đã gỡ tin nhắn thành công!", threadID);
+      });
+      return;
+    }
+
     /* ==================== NSFW Commands ==================== */
 
     //nhentai ramdom code
@@ -1538,12 +1851,12 @@ module.exports = function({
 
     //nhentai search
     if (contentMessage.indexOf(`${prefix}nhentai -i`) == 0) {
-      let id = contentMessage
+      var id = contentMessage
         .slice(prefix.length + 11, contentMessage.length)
         .trim();
       if (!id) return api.sendMessage("Nhập id!", threadID);
-      let url = `https://nhentai.net/api/gallery/${id}`;
-      let filename = `./nhentai/${id}.json`;
+      let url = "https://nhentai.net/api/gallery/" + id;
+      let filename = __dirname + "/src/nhentai/" + id + ".json";
       request(
         {
           uri: url
@@ -1558,8 +1871,21 @@ module.exports = function({
                 codeData = JSON.parse(data);
               } catch (err) {
                 fs.unlinkSync(filename);
-                return api.sendMessage("Không tìm thấy truyện này", threadID);
+                return api.sendMessage(
+                  "Không tìm thấy truyện này",
+                  threadID,
+                  messageID
+                );
               }
+              if (codeData.error == true)
+                return api.sendMessage(
+                  "Không tìm thấy truyện này",
+                  threadID,
+                  () => {
+                    fs.unlinkSync(filename);
+                  },
+                  messageID
+                );
               let title = codeData.title.pretty;
               let numpages = codeData.num_pages;
               let tagsList = [];
@@ -1608,8 +1934,8 @@ module.exports = function({
       const { JSDOM } = jsdom;
       var id = contentMessage.slice(prefix.length + 12, contentMessage.length);
       if (!id) return api.sendMessage("Nhập id!", threadID);
-      let url = `https://hentaivn.net/id${id}`;
-      let filename = `./hentaivn/${id}.html`;
+      let url = "https://hentaivn.net/id" + id;
+      let filename = __dirname + "/src/hentaivn/" + id + ".html";
       request(
         {
           uri: url
@@ -1778,7 +2104,8 @@ module.exports = function({
           baseURL +
           "/ISteamUser/GetPlayerBans/v1/?key=" +
           steamAPI +
-          "&steamids=";
+          "&steamids=" +
+          input;
         getURL = encodeURI(getURL);
         request(
           {
@@ -1826,10 +2153,7 @@ module.exports = function({
           "/ISteamUser/ResolveVanityURL/v0001/?key=" +
           steamAPI +
           "&vanityurl=" +
-          steamID;
-        //http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/key=C287F2456DF464CD64B8B75B0BE76DB9&vanityurl=https://steamcommunity.com/id/Catalizcs
-
-        //http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=C287F2456DF464CD64B8B75B0BE76DB9&vanityurl=https://steamcommunity.com/id/Catalizcs
+          input;
 
         getURL = encodeURI(getURL);
         request(
@@ -1845,7 +2169,7 @@ module.exports = function({
                 messageID
               );
             var data = JSON.parse(body);
-            api.SendMessage(
+            api.sendMessage(
               "steamID của username " + input + " là: " + data.response.steamid,
               threadID,
               messageID
@@ -1859,7 +2183,7 @@ module.exports = function({
       return;
     }
     /*todo list:
-     - Game LOL
+     - Game LOL: no api, i cant do this thing "/
      - Game CSGO: done
      - Game Dota2
      - More and More
@@ -1893,7 +2217,7 @@ module.exports = function({
               body: "",
               attachment: fs.createReadStream(__dirname + "/src/video.mp4")
             };
-            api.sendMessage(up, threadID,() => {
+            api.sendMessage(up, threadID, () => {
               fs.unlinkSync(__dirname + "/src/video.mp4");
             });
           };
@@ -1933,7 +2257,7 @@ module.exports = function({
             body: "",
             attachment: fs.createReadStream(__dirname + "/src/video.mp4")
           };
-          api.sendMessage(up, threadID,() => {
+          api.sendMessage(up, threadID, () => {
             fs.unlinkSync(__dirname + "/src/video.mp4");
           });
         };
@@ -1975,7 +2299,7 @@ module.exports = function({
             body: "",
             attachment: fs.createReadStream(__dirname + "/src/music.mp3")
           };
-          api.sendMessage(up, threadID,() => {
+          api.sendMessage(up, threadID, () => {
             fs.unlinkSync(__dirname + "/src/music.mp3");
           });
         };
@@ -2009,12 +2333,29 @@ module.exports = function({
         var link = retrieve.items[0].id.videoId;
         var title = retrieve.items[0].snippet.title;
         var thumbnails = retrieve.items[0].snippet.thumbnails.high.url;
-        api.sendMessage(
-          `https://www.youtube.com/watch?v=` + link,
-          threadID,
-          messageID
-        );
-        api.sendMessage(title, threadID);
+        let callback = function() {
+          let up = {
+            body: ``,
+            attachment: fs.createReadStream(__dirname + "/src/thumbnails.png")
+          };
+          api.sendMessage(
+            title,
+            threadID,
+            () => {
+              api.sendMessage(up, threadID, () => {
+                fs.unlinkSync(__dirname + "/src/thumbnails.png");
+                api.sendMessage(
+                  `https://www.youtube.com/watch?v=` + link,
+                  threadID
+                );
+              });
+            },
+            messageID
+          );
+        };
+        request(thumbnails)
+          .pipe(fs.createWriteStream(__dirname + `/src/thumbnails.png`))
+          .on("close", callback);
       });
       return;
     }

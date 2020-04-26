@@ -14,13 +14,6 @@ const express = require("express");
 const app = express();
 const cmd = require('node-cmd');
 
-app.get('/refresh', (req, res) => {
-	cmd.run('refresh');  // Refresh project
-	console.log('Project restart!');
-
-	return res.sendFile(__dirname + "/view/index.html"); // Send back OK status
-});
-
 app.get("/", function(request, response) {
   response.sendFile(__dirname + "/view/index.html");
 });

@@ -6,10 +6,11 @@ module.exports = {
     googleSearch: process.env.GOOGLE_SEARCH || 'AIzaSyDq7arcyv1OG694MJxGeikQKmprootf4Qs', //api google search
     wolfarm: process.env.WOLFARM || 'T8J8YV-H265UQ762K', //api wolfarm
     osuAPI: process.env.OSU_API || 'f542df9a0b7efc666ac0350446f954740a88faa8', //osu! api
-    yandex: process.env. YANDEX || 'trnsl.1.1.20200418T073103Z.c4ef03f424190059.03004d3b28130ebf6f8c3e71df34f2a413882c96', //api yandex
+    yandex: process.env.YANDEX || 'trnsl.1.1.20200418T073103Z.c4ef03f424190059.03004d3b28130ebf6f8c3e71df34f2a413882c96',
     tenor: process.env.TENOR || '73YIAOY3ACT1', //api tenor
-    steamAPI: process.env.STEAM_API || 'C287F2456DF464CD64B8B75B0BE76DB9', //steam api
-    admins: (process.env.ADMINS || '100027477920916_100043856164884').split('_').map(e => parseInt(e)), //uid admin
+    openweather: process.env.OPENWEATHER || '081c82065cfee62cb7988ddf90914bdd', //¯\_(ツ)_/¯ 
+    steamAPI: process.env.STEAM_API || '',
+    admins: (process.env.ADMINS || 'id1_id2').split('_').map(e => parseInt(e)), //uid admin
     developer: {
         uid: 100027477920916,
         email: 'rfechinonguyen@gmail.com',
