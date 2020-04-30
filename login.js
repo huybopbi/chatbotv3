@@ -25,7 +25,8 @@ login(obj, option, (err, api) => {
           rl.close();
         });
         break;
-      default:        console.error(err);
+      default:
+      console.error(err);
     }
     return;
   }

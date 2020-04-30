@@ -1,5 +1,4 @@
 module.exports = function ({ sequelize, Sequelize }) {
-  const moment = require("moment-timezone");
   let User = sequelize.define('user', {
     id: {
       type: Sequelize.INTEGER,

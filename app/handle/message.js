@@ -50,6 +50,15 @@ module.exports = function({
       modules.log("Tạo file listCommand mới thành công!");
     });
   }
+  
+  if (!fs.existsSync(__dirname + "/src/groupID.json")) {
+    var template = [];
+    push = JSON.stringify(template);
+    fs.writeFile(__dirname + "/src/listCommand.json", push, "utf-8", err => {
+      if (err) throw err;
+      modules.log("Tạo file groupID mới thành công!");
+    });
+  }
 
   if (!fs.existsSync(__dirname + "/src/quotes.json")) {
     request("https://type.fit/api/quotes", (err, response, body) => {
@@ -289,7 +298,7 @@ module.exports = function({
       admins.includes(senderID)
     ) {
       const mentions = Object.keys(event.mentions);
-      if (mentions.length == 0)
+      if (!mentions)
         return api.sendMessage("Vui lòng tag những người cần unban", threadID);
       mentions.forEach(mention => {
         const indexOfUser = __GLOBAL.userBlocked.indexOf(parseInt(mention));
@@ -353,7 +362,7 @@ module.exports = function({
       admins.includes(senderID)
     ) {
       const mentions = Object.keys(event.mentions);
-      if (mentions.length == 0)
+      if (!mentions)
         return api.sendMessage("Vui lòng tag những người cần ban!", threadID);
       mentions.forEach(mention => {
         if (admins.includes(mention))
@@ -398,7 +407,7 @@ module.exports = function({
         prefix.length + 7,
         contentMessage.length
       );
-      if (content.length == 0)
+      if (!content)
         return api.sendMessage("Nhập thông tin vào!", threadID, messageID);
 
       api.getThreadList(100, null, ["INBOX"], function(err, list) {
@@ -419,7 +428,7 @@ module.exports = function({
         prefix.length + 7,
         contentMessage.length
       );
-      if (content.length == 0)
+      if (!content)
         return api.sendMessage(
           " Có vẻ như bạn chưa nhập thông tin, vui lòng nhập thông tin lỗi mà bạn gặp!",
           threadID,
@@ -456,7 +465,7 @@ module.exports = function({
         var content = contentMessage
           .slice(prefix.length + 10, contentMessage.length)
           .trim();
-        if (content.length == 0)
+        if (!content)
           return api.sendMessage(
             `Chưa nhập thông tin kìa bạn eii`,
             threadID,
@@ -493,7 +502,7 @@ module.exports = function({
         var content = contentMessage
           .slice(prefix.length + 6, contentMessage.length)
           .trim();
-        if (content.length == 0)
+        if (!content)
           return api.sendMessage(
             `Chưa nhập thông tin kìa bạn eii`,
             threadID,
@@ -1492,7 +1501,7 @@ module.exports = function({
         }
 
         return;
-      } else if (content.length !== 0) {
+      } else if (!content) {
         api.getUserInfo(content, (err, result) => {
           if (err) return modules.log(err, 2);
           const { name } = result[content];
@@ -1672,7 +1681,7 @@ module.exports = function({
       )
         return api.sendMessage("Không tìm thấy " + content, threadID);
       api.sendMessage(
-        "Thời gian hiện tại ở địa điemr " +
+        "Thời gian hiện tại ở địa điểm " +
           cityname +
           " đang là " +
           moment.tz(timezone).format("HH:mm"),
@@ -1984,7 +1993,7 @@ module.exports = function({
 
       if (content.indexOf("checkban") == 0) {
         var input = content.slice(9, content.length);
-        if (input.length == 0)
+        if (!input)
           return api.sendMessage(
             "bạn chưa nhập thông tin",
             threadID,
@@ -2231,7 +2240,7 @@ module.exports = function({
     if (contentMessage.indexOf(`${prefix}roul`) == 0) {
       economy.getMoney(senderID).then(function(moneydb) {
         var content = contentMessage.slice(
-          prefix.length + 9,
+          prefix.length + 5,
           contentMessage.length
         ); // red 500
         if (content.length == 0)
