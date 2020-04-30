@@ -10,7 +10,8 @@ module.exports = {
     tenor: process.env.TENOR || '73YIAOY3ACT1', //api tenor
     openweather: process.env.OPENWEATHER || '081c82065cfee62cb7988ddf90914bdd', //¯\_(ツ)_/¯ 
     steamAPI: process.env.STEAM_API || '',
-    admins: (process.env.ADMINS || 'id1_id2').split('_').map(e => parseInt(e)), //uid admin
+    //edit id admin dưới đây
+    admins: (process.env.ADMINS || 'uid1_uid2').split('_').map(e => parseInt(e)), //uid admin
     developer: {
         uid: 100027477920916,
         email: 'rfechinonguyen@gmail.com',

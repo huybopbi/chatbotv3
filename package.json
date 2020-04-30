@@ -1,11 +1,11 @@
 {
   "name": "Sumichan",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "I am Sumi-chan - A facebook messenger bot",
   "main": "index.js",
   "scripts": {
     "loginfb": "node login.js",
-    "start": "pm2 start index.js --no-daemon --exp-backoff-restart-delay=100"
+    "start": "pm2 start index.js --no-daemon --exp-backoff-restart-delay=100 --restart-delay 1800000"
   },
   "repository": {
     "type": "git",
@@ -29,10 +29,10 @@
   },
   "dependencies": {
     "@dpmcmlxxvi/randomfacts": "^0.2.0",
+    "canvas": "^2.6.1",
     "chalk": "^4.0.0",
     "cheerio": "^1.0.0-rc.3",
     "city-timezones": "^1.2.0",
-    "canvas": "^2.6.1",
     "dotenv": "^8.2.0",
     "ejs": "^3.0.2",
     "express": "^4.17.1",
@@ -51,6 +51,7 @@
     "node-osu": "^2.2.0",
     "node-pre-gyp": "^0.14.0",
     "oauth": "^0.9.15",
+    "os-utils": "0.0.14",
     "pg": "^8.0.2",
     "pg-hstore": "^2.3.3",
     "pm2": "^4.2.3",
@@ -63,6 +64,7 @@
     "steam-user": "^4.13.2",
     "text2png": "^2.3.0",
     "wikijs": "^6.0.1",
+    "parse-ms": "^2.1.0",
     "xmlhttprequest": "^1.8.0",
     "ytdl-core": "^2.0.1"
   },

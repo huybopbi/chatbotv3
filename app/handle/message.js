@@ -10,7 +10,9 @@ const api = "https://random-word-api.herokuapp.com/word?number=1";
 const wiki = require("wikijs").default;
 const facebook = require("facebook-video-downloader");
 const cmd = require("node-cmd");
-var timer = moment.tz("Asia/Ho_Chi_Minh").format("HH:ss");
+const osutils = require("os-utils");
+const ms = require("parse-ms");
+var timer = moment.tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DDTHH:mm:ss.sss[Z]");
 //MODULES//
 const playvideo = require("./modules/playvideo");
 const music = require("./modules/music");
@@ -23,7 +25,8 @@ module.exports = function({
   __GLOBAL,
   User,
   Thread,
-  Rank
+  Rank,
+  economy
 }) {
   let {
     prefix,
@@ -38,10 +41,6 @@ module.exports = function({
     ENDPOINT
   } = config;
   /* ================ CronJob ==================== */
-
-  setInterval(() => {
-    timer = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm");
-  }, 1000);
 
   if (!fs.existsSync(__dirname + "/src/listCommands.json")) {
     var template = [];
@@ -79,9 +78,10 @@ module.exports = function({
         sleep: [],
         fact: []
       };
+      var newData = JSON.stringify(firstJSON);
       fs.writeFile(
         __dirname + "/src/listThread.json",
-        JSON.stringify(firstJSON),
+        newData,
         "utf-8",
         err => {
           if (err) throw err;
@@ -89,65 +89,69 @@ module.exports = function({
         }
       );
     }
-    fs.readFile(__dirname + "/src/listThread.json", "utf-8", function(
-      err,
-      data
-    ) {
-      if (err) throw err;
-      var oldData = JSON.parse(data);
-      groupids.forEach(item => {
-        while (timer == "23:00" && !oldData.sleep.includes(item)) {
-          api.sendMessage(
-            `Tới giờ ngủ rồi đấy nii-chan, おやすみなさい!  `,
-            item
-          );
-          oldData.sleep.push(item);
-          break;
-        }
+    setInterval(() => {
+      fs.readFile(__dirname + "/src/listThread.json", "utf-8", function(
+        err,
+        data
+      ) {
+        if (err) throw err;
 
-        //chào buổi sáng
-        while (timer == "07:00" && !oldData.wake.includes(item)) {
-          api.sendMessage(` おはようございま các nii-chan uwu `, item);
-          oldData.wake.push(item);
-          break;
-        }
+        var oldData = JSON.parse(data);
+        timer = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm");
+        groupids.forEach(item => {
+          while (timer == "23:00" && !oldData.sleep.includes(item)) {
+            api.sendMessage(
+              `Tới giờ ngủ rồi đấy nii-chan, おやすみなさい!  `,
+              item
+            );
+            oldData.sleep.push(item);
+            break;
+          }
 
-        //những sự thật mỗi ngày
-        while (timer == "08:00" && !oldData.fact.includes(item)) {
-          oldData.fact.push(item);
-          request(
-            "https://random-word-api.herokuapp.com/word?number=1",
-            (err, response, body) => {
+          //chào buổi sáng
+          while (timer == "07:00" && !oldData.wake.includes(item)) {
+            api.sendMessage(` おはようございま các nii-chan uwu `, item);
+            oldData.wake.push(item);
+            break;
+          }
+
+          //những sự thật mỗi ngày
+          while (timer == "08:00" && !oldData.fact.includes(item)) {
+            oldData.fact.push(item);
+            request(
+              "https://random-word-api.herokuapp.com/word?number=1",
+              (err, response, body) => {
+                if (err) throw err;
+                var retrieve = JSON.parse(body);
+                const fact = randomfacts.make(retrieve);
+                api.sendMessage(
+                  '📖Fact của ngày hôm nay:\n "' + fact + '".',
+                  item
+                );
+              }
+            );
+            break;
+          }
+
+          //xoá toàn bộ
+          if (timer == "00:00") {
+            oldData.wake = [];
+            oldData.sleep = [];
+            oldData.fact = [];
+          }
+
+          let newData = JSON.stringify(oldData);
+          fs.writeFile(
+            __dirname + "/src/listThread.json",
+            newData,
+            "utf-8",
+            err => {
               if (err) throw err;
-              var retrieve = JSON.parse(body);
-              const fact = randomfacts.make(retrieve);
-              api.sendMessage(
-                '📖Fact của ngày hôm nay:\n "' + fact + '".',
-                item
-              );
             }
           );
-          break;
-        }
-
-        //xoá toàn bộ
-        if (timer == "00:00") {
-          oldData.wake = [];
-          oldData.sleep = [];
-          oldData.fact = [];
-        }
-
-        let newData = JSON.stringify(oldData);
-        fs.writeFile(
-          __dirname + "/src/listThread.json",
-          newData,
-          "utf-8",
-          err => {
-            if (err) throw err;
-          }
-        );
+        });
       });
-    });
+    }, 1000);
   });
   return function({ event }) {
     let { body: contentMessage, senderID, threadID, messageID } = event;
@@ -385,26 +389,9 @@ module.exports = function({
       return;
     }
 
-    //lấy tên group
-    if (
-      contentMessage.indexOf(`${prefix}getname`) == 0 &&
-      admins.includes(senderID)
-    ) {
-      var content = contentMessage.slice(
-        prefix.length + 8,
-        contentMessage.length
-      );
-      if (content.length == 0)
-        return api.sendMessage("Bạn chưa nhập ID thread!", threadID);
-      api.getThreadInfo(content, function(err, info) {
-        if (err) throw err;
-        api.sendMessage(info.name, threadID, messageID);
-      });
-    }
-
     //Thông báo tới toàn bộ group!
     if (
-      contentMessage.indexOf(`${prefix}update`) == 0 &&
+      contentMessage.indexOf(`${prefix}noti`) == 0 &&
       admins.includes(senderID)
     ) {
       var content = contentMessage.slice(
@@ -427,6 +414,7 @@ module.exports = function({
     //giúp thành viên thông báo lỗi về admin
     if (contentMessage.indexOf(`${prefix}report`) == 0) {
       var clock = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm:ss");
+      var reportID = Math.floor(Math.random() * (1e4 + 1 - 1e5)) + 1e4;
       var content = contentMessage.slice(
         prefix.length + 7,
         contentMessage.length
@@ -440,6 +428,8 @@ module.exports = function({
       api.sendMessage(
         " Có báo cáo lỗi mới từ id: " +
           senderID +
+          " id support " +
+          reportID +
           "\n - ThreadID gặp lỗi: " +
           threadID +
           "\n - Lỗi gặp phải: " +
@@ -449,7 +439,8 @@ module.exports = function({
         admins[0]
       );
       api.sendMessage(
-        "Thông tin lỗi của bạn đã được gửi về admin!",
+        "Thông tin lỗi của bạn đã được gửi về admin!, đây là id hỗ trợ của bạn: " +
+          reportID,
         threadID,
         messageID
       );
@@ -527,21 +518,7 @@ module.exports = function({
       }
       return;
     }
-
-    //ping url
-    if (contentMessage.indexOf(`${prefix}ping url`) == 0) {
-      var content = contentMessage.slice(
-        prefix.length + 8,
-        contentMessage.length
-      );
-      if (content.length == 0)
-        return api.sendMessage("ip đâu ?", threadID, messageID);
-      cmd.get("ping " + content + " -c 1", (err, data, response) =>
-        api.sendMessage("Ping Connection: \n" + data, threadID, messageID)
-      );
-      return;
-    }
-
+    
     //get ids
     if (contentMessage == `${prefix}getids` && admins.includes(senderID)) {
       var data = [];
@@ -562,18 +539,6 @@ module.exports = function({
           }
         );
       });
-      return;
-    }
-
-    if (contentMessage == `${prefix}refresh` && admins.includes(senderID)) {
-      api.sendMessage(
-        `Hệ thống đang bắt đầu khởi động lại!`,
-        threadID,
-        () => {
-          cmd.run("refresh");
-        },
-        messageID
-      );
       return;
     }
 
@@ -699,7 +664,7 @@ module.exports = function({
       );
       if (content.length == 0)
         return api.sendMessage(
-          "Nhập lệnh cần giúp đỡ đi bạn ơi",
+          "Để biết tất cả các lệnh bot, hãy sử dụng !help all",
           threadID,
           messageID
         );
@@ -915,8 +880,9 @@ module.exports = function({
               body: "",
               attachment: fs.createReadStream(__dirname + `/src/anime.${ext}`)
             };
-            api.sendMessage(up, threadID, messageID);
-            fs.unlinkSync(__dirname + `/src/anime.${ext}`);
+            api.sendMessage(up, threadID, () => {
+              fs.unlinkSync(__dirname + `/src/anime.${ext}`)
+            }, messageID);
           };
           request(getURL)
             .pipe(fs.createWriteStream(__dirname + `/src/anime.${ext}`))
@@ -928,52 +894,29 @@ module.exports = function({
 
     //meme
     if (contentMessage == `${prefix}meme`) {
-      if (contentMessage.indexOf("dark") !== -1) {
-        request(
-          "https://meme-api.herokuapp.com/gimme/darkmemes",
-          (err, response, body) => {
-            if (err) throw err;
-            var content = JSON.parse(body);
-            let title = content.title;
-            var baseurl = content.url;
+      request(
+        "https://meme-api.herokuapp.com/gimme/memes",
+        (err, response, body) => {
+          if (err) throw err;
+          var content = JSON.parse(body);
+          let title = content.title;
+          var baseurl = content.url;
 
-            let callback = function() {
-              let up = {
-                body: `${title}`,
-                attachment: fs.createReadStream(__dirname + "/src/meme.jpg")
-              };
-              api.sendMessage(up, threadID, messageID);
-              fs.unlinkSync(__dirname + "/src/meme.jpg");
+          let callback = function() {
+            let up = {
+              body: `${title}`,
+              attachment: fs.createReadStream(__dirname + "/src/meme.jpg")
             };
-            request(baseurl)
-              .pipe(fs.createWriteStream(__dirname + `/src/meme.jpg`))
-              .on("close", callback);
-          }
-        );
-      } else {
-        request(
-          "https://meme-api.herokuapp.com/gimme/memes",
-          (err, response, body) => {
-            if (err) throw err;
-            var content = JSON.parse(body);
-            let title = content.title;
-            var baseurl = content.url;
-
-            let callback = function() {
-              let up = {
-                body: `${title}`,
-                attachment: fs.createReadStream(__dirname + "/src/meme.jpg")
-              };
-              api.sendMessage(up, threadID, messageID);
-              fs.unlinkSync(__dirname + "/src/meme.jpg");
-            };
-            request(baseurl)
-              .pipe(fs.createWriteStream(__dirname + `/src/meme.jpg`))
-              .on("close", callback);
-          }
-        );
-      }
-      return;
+            api.sendMessage(up, threadID, () => {
+              fs.unlinkSync(__dirname + "/src/meme.jpg")
+            }, messageID);
+          };
+          request(baseurl)
+            .pipe(fs.createWriteStream(__dirname + `/src/meme.jpg`))
+            .on("close", callback);
+        }
+      );
+     return;
     }
 
     if (contentMessage == `pls loli`) {
@@ -981,7 +924,7 @@ module.exports = function({
         "https://api.lolis.life/random?category=kawaii",
         (err, response, body) => {
           var data = JSON.parse(body);
-          var baseurl = body.url;
+          var baseurl = data.url;
           let callback = function() {
             let up = {
               body: ``,
@@ -990,8 +933,9 @@ module.exports = function({
             api.sendMessage(up, threadID, messageID);
             fs.unlinkSync(__dirname + "/src/randompic.png");
           };
+
           request(baseurl)
-            .pipe(fs.createWriteStream(__dirname + `/src/randompic.png`))
+            .pipe(fs.createWriteStream(__dirname + "/src/randompic.png"))
             .on("close", callback);
         }
       );
@@ -1111,7 +1055,7 @@ module.exports = function({
         return;
       } else if (content.indexOf(`bomman`) !== -1) {
         request(
-          `https://api.tenor.com/v1/random?key=${tenor}&q=bomman&limit=1`,
+          `https://api.tenor.com/v1/random?key=${tenor}&q=bommanrage&limit=1`,
           (err, response, body) => {
             if (err) throw err;
             var string = JSON.parse(body);
@@ -1202,38 +1146,31 @@ module.exports = function({
       });
       return;
     }
-
-    if (senderID == threadID)
-      return api.sendMessage(
-        "Bạn vui lòng add bot vào nhóm để bot hoạt động tối ưu hơn!",
-        threadID,
-        messageID
-      );
-
+    
     //gọi bot
-    if (contentMessage == `${prefix}sumi`)
+    if (contentMessage == `${prefix}sumi` || contentMessage.indexOf('sumi') == 0)
       return api.sendMessage(`Dạ gọi Sumi ạ?`, threadID, messageID);
 
     //lenny
-    if (contentMessage == `${prefix}lenny`)
+    if (contentMessage == `${prefix}lenny` || contentMessage.indexOf('lenny') == 0)
       return api.sendMessage("( ͡° ͜ʖ ͡°) ", threadID, messageID);
 
     //hug
-    if (contentMessage == `${prefix}hug`)
+    if (contentMessage == `${prefix}hug` || contentMessage.indexOf('hug') == 0)
       return api.sendMessage(" (つ ͡° ͜ʖ ͡°)つ  ", threadID, messageID);
 
     //mlem
-    if (contentMessage == `${prefix}mlem`)
+    if (contentMessage == `${prefix}mlem` || contentMessage.indexOf('mlem') == 0)
       return api.sendMessage(" ( ͡°👅 ͡°)  ", threadID, messageID);
     //care
-    if (contentMessage == `${prefix}care`)
+    if (contentMessage == `${prefix}care` || contentMessage.indexOf('care') == 0)
       return api.sendMessage("¯\\_(ツ)_/¯", threadID, messageID);
 
     //prefix
-    if (contentMessage.indexOf(`prefix`) !== -1)
+    if (contentMessage.indexOf(`prefix`) == 0)
       return api.sendMessage(`Prefix is: ${prefix}`, threadID, messageID);
 
-    if (contentMessage.indexOf("credits") !== -1)
+    if (contentMessage.indexOf("credits") == 0)
       return api.sendMessage(
         "Project Sumi-chan-bot được thực hiện bởi:\n SpermLord: https://www.facebook.com/LiterallyASperm \n CatalizCS: https://www.facebook.com/Cataliz2k\n Full source code at: https://github.com/roxtigger2003/Sumi-chan-bot",
         threadID,
@@ -1266,46 +1203,7 @@ module.exports = function({
       );
       return;
     }
-
-    //tìm vị trí theo ip
-    if (contentMessage.indexOf(`${prefix}local`) == 0) {
-      var ip = contentMessage.slice(prefix.length + 6, contentMessage.length);
-      if (ip.length == 0)
-        return api.sendMessage(
-          ` Bạn chưa nhập ip, hãy đọc hướng dẫn tại ${prefix}help !`,
-          threadID,
-          messageID
-        );
-      var baseurl = "http://ip-api.com/json/" + ip + "?fields=61209";
-      var baseurl = encodeURI(baseurl);
-      request(baseurl, (err, response, body) => {
-        if (err) throw err;
-        var iplocal = JSON.parse(body);
-        api.sendMessage(
-          " Toàn bộ thông tin về ip: " +
-            iplocal.query +
-            "\n - Thành phố: " +
-            iplocal.city +
-            "\n - Tên miền: " +
-            iplocal.regionName +
-            "\n - Quốc gia: " +
-            iplocal.country +
-            "\n - Núi giờ: " +
-            iplocal.timezone +
-            "\n - AS mumber và tổ chức: " +
-            iplocal.as +
-            "\n - Tên tổ chức: " +
-            iplocal.org +
-            "\n - Tên ISP: " +
-            iplocal.isp +
-            ".",
-          threadID,
-          messageID
-        );
-      });
-      return;
-    }
-
+    
     //thời tiết
     if (contentMessage.indexOf(`${prefix}weather`) == 0) {
       var city = contentMessage.slice(prefix.length + 8, contentMessage.length);
@@ -1412,7 +1310,7 @@ module.exports = function({
             data.data.global.deaths +
             "\n - Hồi phục: " +
             data.data.global.recovered +
-            "\n Việt Nam:\n - Nhiễm: " +
+            "\nViệt Nam:\n - Nhiễm: " +
             data.data.vietnam.cases +
             "\n - Chết: " +
             data.data.vietnam.deaths +
@@ -1705,7 +1603,7 @@ module.exports = function({
         "http://api.wolframalpha.com/v2/result?appid=" + wolfarm + "&i=";
       var m = contentMessage.slice(prefix.length + 5, contentMessage.length);
       var o = m.replace(/ /g, "+");
-      var l = "http://lmgtfy.com/?q=" + 0;
+      var l = "http://lmgtfy.com/?q=" + o;
       request(wolfram + encodeURIComponent(m), function(err, response, body) {
         if (body.toString() === "Wolfram|Alpha did not understand your input") {
           api.sendMessage(l, threadID, messageID);
@@ -1774,27 +1672,11 @@ module.exports = function({
       )
         return api.sendMessage("Không tìm thấy " + content, threadID);
       api.sendMessage(
-        "Giờ bên " +
+        "Thời gian hiện tại ở địa điemr " +
           cityname +
           " đang là " +
           moment.tz(timezone).format("HH:mm"),
         threadID
-      );
-      return;
-    }
-
-    if (contentMessage == `text-bomb` && admins.includes(senderID)) {
-      api.sendMessage(
-        `بٍٍٍٍََُُُِّّّْرٍٍٍٍََُُِِّّّْآٍٍٍَُّ 🦠 بٍٍٍٍََُُُِّّّْرٍٍٍٍََُُِِّّّْآٍٍٍَُّ`,
-        threadID,
-        messageID,
-        () => {
-          api.sendMessage(
-            `A messaging bug using a Sindhi language character seems to be crashing iOS 13...
- 💅🏿`,
-            threadID
-          );
-        }
       );
       return;
     }
@@ -1990,6 +1872,8 @@ module.exports = function({
       var username = contentMessage
         .slice(prefix.length + 11, contentMessage.length)
         .trim();
+      if (osuAPI == '' || osuAPI == undefined)
+        return api.sendMessage("Bot chưa có steam api!!", threadID, messageID);
       var osuApi = new osu.Api(`${osuAPI}`, {
         notFoundAsError: true,
         completeScores: false
@@ -2195,7 +2079,248 @@ module.exports = function({
      - More and More
     
       
-/* ==================== Media Commands ==================== */
+/* ==================== Economy and Minigame Commands ==================== */
+
+    //coin flip
+    if (contentMessage.indexOf(`${prefix}coinflip`) == 0) {
+      let random = Math.floor(Math.random() * Math.floor(2));
+      if (random === 0) {
+        api.sendMessage("Mặt ngửa!", threadID, messageID);
+      } else {
+        api.sendMessage("Mặt sấp!", threadID, messageID);
+      }
+      return;
+    }
+
+    //kéo búa bao
+    if (
+      contentMessage.indexOf(`${prefix}kéo`) !== -1 ||
+      contentMessage.indexOf(`${prefix}búa`) !== -1 ||
+      contentMessage.indexOf(`${prefix}bao`) !== -1
+    ) {
+      let random = Math.floor(Math.random() * Math.floor(2));
+      if (random == 0) return api.sendMessage(`kéo nè`, threadID, messageID);
+      else if (random == 1)
+        return api.sendMessage(`búa nè`, threadID, messageID);
+      else if (random == 2)
+        return api.sendMessage(`bao nè`, threadID, messageID);
+      return;
+    }
+
+    //getCoin
+    if (contentMessage == `${prefix}mymoney`) {
+      economy
+        .getMoney(senderID)
+        .then(money =>
+          api.sendMessage(
+            "Đây là số tiền bạn có: " + money,
+            threadID,
+            messageID
+          )
+        );
+      return;
+    }
+
+    //cheat code
+    if (
+      contentMessage.indexOf(`${prefix}setmoney`) == 0 &&
+      admins.includes(senderID)
+    ) {    
+      for (var i = 0; i < Object.keys(event.mentions).length; i++) {
+        economy.updateMoney(Object.keys(event.mentions)[i], 5000);
+      }
+      return;
+    }
+
+    if (
+      contentMessage.indexOf(`${prefix}setdefault`) == 0 &&
+      admins.includes(senderID)
+    ) {
+      for (var i = 0; i < Object.keys(event.mentions).length; i++) {
+        economy.setDefaultMoney(Object.keys(event.mentions)[i]);
+      }
+      return;
+    }
+
+    if (contentMessage.indexOf(`${prefix}daily`) == 0) {
+      let cooldown = 8.64e7; //86400000;
+      let amount = 200;
+      economy.getDailyTime(senderID).then(function(lastDaily) {
+        if (lastDaily !== null && cooldown - (Date.now() - lastDaily) > 0) {
+          let time = ms(cooldown - (Date.now() - lastDaily));
+          api.sendMessage(
+            " Bạn đã nhận phần thưởng của ngày hôm nay, vui lòng quay lại sau: " +
+              time.hours +
+              " giờ " +
+              time.minutes +
+              " phút " +
+              time.seconds +
+              " giây ",
+            threadID,
+            messageID
+          );
+        } else {
+          api.sendMessage(
+            "Bạn đã nhận phần thưởng của ngày hôm nay. Cố gắng lên nhé <3",
+            threadID,
+            () => {
+              economy.updateMoney(senderID, amount);
+              economy.updateDailyTime(senderID, Date.now());
+              modules.log("User: " + senderID + " nhận daily thành công!");
+            },
+            messageID
+          );
+        }
+      });
+      return;
+    }
+
+    if (contentMessage == `${prefix}thăm ngàn`) {
+      let cooldown = 600000;
+      economy.getWorkTime(senderID).then(function(lastWork) {
+        if (lastWork !== null && cooldown - (Date.now() - lastWork) > 0) {
+          let time = ms(cooldown - (Date.now() - lastWork));
+          api.sendMessage(
+            " Bạn đã thăm ngàn, để tránh bị kiệt sức vui lòng quay lại sau: " +
+              time.hours +
+              " giờ " +
+              time.minutes +
+              " phút " +
+              time.seconds +
+              " giây ",
+            threadID,
+            messageID
+          );
+        } else {
+          let job = [
+            "bán vé số",
+            "sửa xe",
+            "lập trình",
+            "hack facebook",
+            "thợ sửa ống nước ( ͡° ͜ʖ ͡°)",
+            "đầu bếp",
+            "thợ hồ",
+            "fake taxi",
+            "gangbang người khác",
+            "re sờ chym mờ",
+            "bán hàng online",
+            "nội trợ",
+            "vả mấy thằng sao đỏ, giun vàng",
+            "bán hoa"
+          ];
+          let result = Math.floor(Math.random() * job.length);
+          let amount = Math.floor(Math.random() * 500) + 1;
+          api.sendMessage(
+            "Bạn đã làm công việc " +
+              job[result] +
+              " và đã nhận được số tiền là: " +
+              amount,
+            threadID,
+            () => {
+              economy.updateMoney(senderID, amount);
+              economy.updateWorkTime(senderID, Date.now());
+              modules.log("User: " + senderID + " nhận job thành công!");
+            },
+            messageID
+          );
+        }
+      });
+      return;
+    }
+
+    if (contentMessage.indexOf(`${prefix}roul`) == 0) {
+      economy.getMoney(senderID).then(function(moneydb) {
+        var content = contentMessage.slice(
+          prefix.length + 9,
+          contentMessage.length
+        ); // red 500
+        if (content.length == 0)
+          return api.sendMessage(
+            `Bạn chưa nhập thông tin đặt cược!`,
+            threadID,
+            messageID
+          );
+        var string = content.split(" ");
+        var color = string[0];
+        var money = string[1];
+
+        function isOdd(num) {
+          if (num % 2 == 0) return false;
+          else if (num % 2 == 1) return true;
+        }
+
+        let random = Math.floor(Math.random() * 37);
+        if (money.length == 0 || color.length == 0)
+          return api.sendMessage("Sai format", threadID, messageID);
+        if (money > moneydb)
+          return api.sendMessage(
+            `Số tiền của bạn không đủ`,
+            threadID,
+            messageID
+          );
+        if (color == "b" || color.includes("black")) color = 0;
+        else if (color == "r" || color.includes("red")) color = 1;
+        else if (color == "g" || color.includes("green")) color = 2;
+        else
+          return api.sendMessage(
+            "Bạn chưa nhập thông tin cá cược!, Red [1.5x] Black [2x] Green [15x]",
+            threadID,
+            messageID
+          );
+        
+        if (random == 0) api.sendMessage('Màu 💚', threadID, messageID)
+        else if (isOdd(random)) api.sendMessage('Màu ❤️', threadID, messageID)
+        else if (!isOdd(random)) api.sendMessage('Màu 🖤', threadID, messageID)
+        
+
+        if (random == 0 && color == 2) {
+          money *= 15;
+          api.sendMessage(
+            `bạn đã chọn màu 💚, bạn đã thắng với số tiền được nhân lên 15: ${money} đô`,
+            threadID,
+            () => {
+              economy.updateMoney(senderID, money);
+            },
+            messageID
+          );
+          modules.log(`${senderID} Won ${money} on green`);
+        } else if (isOdd(random) && color == 1) {
+          money = parseInt(money * 1.5);
+          api.sendMessage(
+            `bạn đã chọn màu ❤️, bạn đã thắng với số tiền nhân lên 1.5: ${money} đô`,
+            threadID,
+            () => {
+              economy.updateMoney(senderID, money);
+            },
+            messageID
+          );
+          modules.log(`${senderID} Won ${money} on red`);
+        } else if (!isOdd(random) && color == 0) {
+          money = parseInt(money * 2);
+          api.sendMessage(
+            `bạn đã chọn màu 🖤️, bạn đã thắng với số tiền nhân lên 2: ${money} đô`,
+            threadID,
+            () => {
+              economy.updateMoney(senderID, money);
+            },
+            messageID
+          );
+          modules.log(`${senderID} Won ${money} on black`);
+        } else {
+          api.sendMessage(
+            `bạn đã ra đê ở và mất trắng số tiền: ${money} đô :'(`,
+            threadID,
+            () => {
+              economy.subtractMoney(senderID, money);
+            },
+            messageID
+          );
+        }
+      });
+      return;
+    }
+
+    /* ==================== Media Commands ==================== */
 
     //get video facebook
     if (contentMessage.indexOf(`${prefix}facebook -p`) == 0) {
@@ -2247,9 +2372,9 @@ module.exports = function({
 
       ytdl.getInfo(content, function(err, info) {
         if (err) throw err;
-        if (info.length_seconds > 245)
+        if (info.length_seconds > 360)
           return api.sendMessage(
-            "link Video dài quá 3 phút, xin vui lòng gửi link video khác!",
+            "Độ dài video vượt quá mức cho phép, tối thiểu là 5 phút!",
             threadID,
             messageID
           );
@@ -2310,7 +2435,9 @@ module.exports = function({
           });
         };
         music.youtube(
-          contentMessage.slice(prefix.length + 11, contentMessage.length).trim(),
+          contentMessage
+            .slice(prefix.length + 11, contentMessage.length)
+            .trim(),
           callback
         );
       });

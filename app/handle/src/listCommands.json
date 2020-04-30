@@ -56,13 +56,6 @@
       "group":"general"
    },
    {
-      "name":"ping url",
-      "decs":"Kiểm tra kết nối của bot đến url ",
-      "usage":"!ping url [url hoặc ip]",
-      "example":"!ping url facebook.com",
-      "group":"general"
-   },
-   {
       "name":"ping",
       "decs":"Tag toàn bộ thành viên trong nhóm cùng một lúc (Hạn chế sử dụng) ",
       "usage":"!ping",
@@ -140,7 +133,7 @@
       "group":"system"
    },
    {
-      "name":"anime get tag",
+      "name":"anime tag",
       "decs":"Lấy toàn bộ tag mà bạn có thể sử dụng ",
       "usage":"!anime [sfw, nsfw]",
       "example":"!anime sfw",
@@ -245,55 +238,6 @@
       "group":"general"
    },
    {
-      "name":"ban thread",
-      "decs":"ngưng nhận lệnh group mà bạn ban  ",
-      "usage":"!ban thread",
-      "example":"!ban thread",
-      "group":"admin"
-   },
-   {
-      "name":"ban",
-      "decs":"Ban người dùng  ",
-      "usage":"!ban [tag người dùng]",
-      "example":"!ban @Sumi-Chan",
-      "group":"admin"
-   },
-   {
-      "name":"unban",
-      "decs":"Unban người dùng  ",
-      "usage":"!unban [tag người dùng]",
-      "example":"!ban @Sumi-Chan",
-      "group":"admin"
-   },
-   {
-      "name":"unban thread",
-      "decs":"nhận lệnh group mà bạn đã ban  ",
-      "usage":"!unban thread",
-      "example":"!unban thread",
-      "group":"admin"
-   },
-   {
-      "name":"getname",
-      "decs":"lấy tên group thông qua id  ",
-      "usage":"!getname [id]",
-      "example":"!getname 123248329258",
-      "group":"admin"
-   },
-   {
-      "name":"update",
-      "decs":"Gửi văn tới toàn bộ group  ",
-      "usage":"!update [văn bản]",
-      "example":"!update alo alo",
-      "group":"admin"
-   },
-   {
-      "name":"boostrank",
-      "decs":"Thêm điểm vào hệ thống rank cho người đó  ",
-      "usage":"!boostrank [tag người cần boost] [số điểm]",
-      "example":"!boostrank @Sumi-Chan 1000",
-      "group":"admin"
-   },
-   {
       "name":"steam",
       "decs":"giúp xem được thông tin về steam của bạn ",
       "usage":"!steam [getid, csgostat, checkban]",
@@ -338,7 +282,7 @@
    {
       "name":"meme",
       "decs":"Lấy meme hay trên diễn đàn reddit",
-      "usage":"!meme [darkmeme hoặc để trống]",
+      "usage":"!meme",
       "example":"!meme",
       "group":"general"
    },
@@ -355,6 +299,48 @@
       "usage":"reply(phản hồi) đoạn chat mà bot đã gửi và nhập !gỡ",
       "example":"!gỡ",
       "group":"general"
+   },
+   {
+      "name":"mymoney",
+      "decs":"xem số tiền bạn đang có",
+      "usage":"!mymoney",
+      "example":"!mymoney",
+      "group":"economy"
+   },
+   {
+      "name":"daily",
+      "decs":"nhận phần thưởng hằng ngày",
+      "usage":"!daily",
+      "example":"!daily",
+      "group":"economy"
+   },
+   {
+      "name":"thăm ngàn",
+      "decs":"làm việc thì mới có ăn",
+      "usage":"!thăm ngàn",
+      "example":"!thăm ngàn",
+      "group":"economy"
+   },
+   {
+      "name":"roul",
+      "decs":"chơi cò quay(roulette)",
+      "usage":"!roul [red, green, black] [số tiền cần đặt]",
+      "example":"nếu bạn đặt màu đỏ và số tiền là 500 thì bạn hãy nhập !roul red 500",
+      "group":"economy"
+   },
+   {
+      "name":"kéo búa bao",
+      "decs":"chơi kéo búa bao với bot .-.",
+      "usage":"![kéo, búa, bao]",
+      "example":"!kéo",
+      "group":"economy"
+   },
+   {
+      "name":"coinflip",
+      "decs":"chơi trò tung đồng xu, cái này chơi cá cược thì thôi rồi :))",
+      "usage":"!coinflip",
+      "example":"!coinflip",
+      "group":"economy"
    }
    
 ]

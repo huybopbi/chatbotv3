@@ -4,6 +4,7 @@ module.exports = function({ api, models, __GLOBAL }) {
   const User = require("./controllers/user")({ models, api });
   const Thread = require("./controllers/thread")({ models, api });
   const Rank = require("./controllers/rank")({ models, api });
+  const economy = require("./controllers/economy")({ models, api });
   (async function init() {
     modules.log("Khởi tạo biến môi trường.");
     modules.sendAttachment = require("./modules/sendAttachment")({ api });
@@ -22,7 +23,8 @@ module.exports = function({ api, models, __GLOBAL }) {
     __GLOBAL,
     User,
     Thread,
-    Rank
+    Rank,
+    economy
   });
   const handleEvent = require("./handle/event")({
     api,

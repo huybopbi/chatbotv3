@@ -5,7 +5,6 @@ module.exports = function ({ models, api }) {
         return User.findAll({ where })
             .then(e => e.map(e => e.get({ plain: true })))
             .catch((error) => {
-                logger(error, 2);
                 return [];
             })
     }
@@ -18,7 +17,6 @@ module.exports = function ({ models, api }) {
                     if (created) return logger(id, 'New User');
                 })
                 .catch((error) => {
-                    logger(error, 2);
                 })
         })
     }

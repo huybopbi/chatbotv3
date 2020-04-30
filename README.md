@@ -1,6 +1,6 @@
 # Sumi-chan-bot (Thuộc project Sumi-Chan-Bot)
 
-**Bot Sumi-chan Version 3.0.2 (Hoạt động tốt hơn trên glitch)**
+**Bot Sumi-chan Version 3.0.1 (Hoạt động tốt hơn trên glitch)**
 
 Yêu cầu để có thể sử dụng bot:
 

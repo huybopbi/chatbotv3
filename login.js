@@ -14,7 +14,7 @@ const option = {
   //* cách lấy userAgent: F12-> tab console gõ 'naigator.userAgent' Link: https://imgur.com/oQ5hUkH
 };
 // edit email với password ở bên dưới!
-const obj = { email: "mail@mail.com", password: "pass here" };
+const obj = { email: "email here", password: "password here" };
 login(obj, option, (err, api) => {
   if (err) {
     switch (err.error) {
@@ -25,8 +25,7 @@ login(obj, option, (err, api) => {
           rl.close();
         });
         break;
-      default:
-        console.error(err);
+      default:        console.error(err);
     }
     return;
   }
@@ -35,4 +34,4 @@ login(obj, option, (err, api) => {
   var ghi = fs.createWriteStream(__dirname + "/appstate.json", { flags: "w" });
   ghi.write(json);
   console.log(json);
-});
+});z
