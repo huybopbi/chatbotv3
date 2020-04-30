@@ -404,7 +404,7 @@ module.exports = function({
       admins.includes(senderID)
     ) {
       var content = contentMessage.slice(
-        prefix.length + 7,
+        prefix.length + 5,
         contentMessage.length
       );
       if (!content)
