@@ -23,12 +23,11 @@ const listener = app.listen(process.env.PORT, function() {
   console.log("Your app is listening on port " + listener.address().port);
 });
 
-/*auto refresh sau 30 phút
+//auto refresh sau 30 phút
 setInterval(() => {
 	console.log("Tự động làm mới sau 30p");
 	cmd.run("refresh");
 }, 1800000);
-*/
 
 facebook = ({ Op, models }) =>
   login({ email, password, appState: require(appStateFile) }, function(
