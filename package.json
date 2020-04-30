@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "loginfb": "node login.js",
-    "start": "pm2 start index.js --no-daemon --exp-backoff-restart-delay=100 --restart-delay 1800000"
+    "start": "pm2 start index.js --no-daemon --exp-backoff-restart-delay=100 --restart-delay 100"
   },
   "repository": {
     "type": "git",
