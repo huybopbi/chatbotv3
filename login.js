@@ -34,4 +34,4 @@ login(obj, option, (err, api) => {
   var ghi = fs.createWriteStream(__dirname + "/appstate.json", { flags: "w" });
   ghi.write(json);
   console.log(json);
-});z
+});
