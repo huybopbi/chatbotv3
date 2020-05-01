@@ -2,9 +2,7 @@
 
 **Bot Sumi-chan Version pre3.1 (Hoạt động tốt hơn trên Glitch)**
 
-*ĐANG TRONG QUÁ TRÌNH THỬ NGHIỆM, TUYỆT ĐỐI KHÔNG LẤY VỀ ĐỂ DÙNG*
-
-*KHI NÀO HOÀN THÀNH CHÚA TỂ TINH TRÙNG SẼ BÁO*
+*ĐANG TRONG QUÁ TRÌNH THỬ NGHIỆM, **TUYỆT ĐỐI** KHÔNG LẤY VỀ ĐỂ DÙNG*
 
 Yêu cầu để có thể sử dụng bot:
 
