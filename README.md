@@ -1,6 +1,8 @@
 # Sumi-chan-bot (Thuộc project Sumi-Chan-Bot)
 
-**Bot Sumi-chan Version 3.0.3.1 (Hoạt động tốt hơn trên glitch)**
+**Bot Sumi-chan Version PRE-3.1 (Hoạt động tốt hơn trên Glitch)**
+*ĐANG TRONG QUÁ TRÌNH THỬ NGHIỆM, TUYỆT ĐỐI KHÔNG LẤY VỀ ĐỂ DÙNG*
+*KHI NÀO HOÀN THÀNH CHÚA TỂ TINH TRÙNG SẼ BÁO*
 
 Yêu cầu để có thể sử dụng bot:
 
