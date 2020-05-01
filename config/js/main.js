@@ -12,19 +12,19 @@ var lastCachedQueryCount = {};
 var FileReader = window.FileReader;
 
 var selectFormatter = function (item) {
-		var index = item.text.indexOf("(");
-		if (index > -1) {
-				var name = item.text.substring(0, index);
-				return name + '<span style="color:#ccc">' + item.text.substring(index - 1) + "</span>";
-		}
-		else return item.text;
+	var index = item.text.indexOf("(");
+	if (index > -1) {
+		var name = item.text.substring(0, index);
+		return name + '<span style="color:#ccc">' + item.text.substring(index - 1) + "</span>";
+	}
+	else return item.text;
 };
 
 var windowResize = function () {
-		positionFooter();
-		var container = $("#main-container");
-		var cleft = container.offset().left + container.outerWidth();
-		$("#bottom-bar").css("left", cleft);
+	positionFooter();
+	var container = $("#main-container");
+	var cleft = container.offset().left + container.outerWidth();
+	$("#bottom-bar").css("left", cleft);
 };
 
 var positionFooter = function () {
@@ -209,9 +209,7 @@ function parseLimitFromQuery(query, tableName) {
 			result.currentPage = 0;
 			return result;
 		}
-		if (typeof tableName === "undefined") {
-			tableName = getTableNameFromQuery(query);
-		}
+		if (typeof tableName === "undefined") tableName = getTableNameFromQuery(query);
 		var queryRowsCount = getQueryRowCount(query);
 		if (queryRowsCount != -1) {
 			result.pages = Math.ceil(queryRowsCount / result.max);
@@ -228,9 +226,7 @@ function setPage(el, next) {
 	var query = editor.getValue();
 	var limit = parseLimitFromQuery(query);
 	var pageToSet;
-	if (typeof next !== "undefined") {
-		pageToSet = (next ? limit.currentPage : limit.currentPage - 2 );
-	}
+	if (typeof next !== "undefined") pageToSet = (next ? limit.currentPage : limit.currentPage - 2 );
 	else {
 		var page = prompt("Go to page");
 		if (!isNaN(page) && page >= 1 && page <= limit.pages) pageToSet = page - 1;
