@@ -11,24 +11,6 @@ var lastCachedQueryCount = {};
 
 var FileReader = window.FileReader;
 
-$.urlParam = function(name){
-		var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-		if (results==null){
-				return null;
-		}
-		else{
-				return results[1] || 0;
-		}
-};
-
-var fileReaderOpts = {
-		readAsDefault: "ArrayBuffer", on: {
-				load: function (e, file) {
-						loadDB(e.target.result);
-				}
-		}
-};
-
 var selectFormatter = function (item) {
 		var index = item.text.indexOf("(");
 		if (index > -1) {
@@ -126,6 +108,7 @@ function loadDB() {
 				setIsLoading(false);
 				};
 				xhr.send();
+				xhr.abort();
 			}
 			catch (ex) {
 				setIsLoading(false);

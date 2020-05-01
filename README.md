@@ -1,8 +1,6 @@
 # Sumi-chan-bot (Thuộc project Sumi-Chan-Bot)
 
-**Bot Sumi-chan Version pre3.1 (Hoạt động tốt hơn trên Glitch)**
-
-*ĐANG TRONG QUÁ TRÌNH THỬ NGHIỆM, **TUYỆT ĐỐI** KHÔNG LẤY VỀ ĐỂ DÙNG*
+**Bot Sumi-chan Version 3.1 (Hoạt động tốt hơn trên Glitch)**
 
 Yêu cầu để có thể sử dụng bot:
 
@@ -19,6 +17,7 @@ Yêu cầu để có thể sử dụng bot:
 git clone https://github.com/roxtigger2003/Sumi-chan-bot
 ```
 hoặc ở trên góc phải có nút xanh ghi là clone or download bạn nhấn vào chọn download zip là nó tự download file zip về và unzip ra nha :3
+
 ![Preview](previews/github_download.png)
 
 •Step 2: hãy trỏ cmd hoặc terminal về thư mục bot bằng lệnh: 

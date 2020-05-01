@@ -19,13 +19,15 @@ app.get("/", function(request, response) {
 });
 
 app.get("/dbviewer", function(request, response) {
-  response.sendFile(__dirname + "/dbviewer/index.html");
+  response.sendFile(__dirname + "/config/index.html");
 });
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT, function() {
   console.log("Your app is listening on port " + listener.address().port);
 });
+
+app.use(express.static(__dirname + '/config'));
 
 //auto refresh sau 30 phút
 setInterval(() => {
